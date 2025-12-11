@@ -25,7 +25,6 @@ suite('Functional Tests', () => {
       .send({})
       .end((err, res) => {
         assert.equal(res.status, 200);
-        // CORRECCION: Mensaje en singular 'missing'
         assert.equal(res.body.error, 'Required field missing');
         done();
       });
@@ -110,7 +109,6 @@ suite('Functional Tests', () => {
       .post('/api/check')
       .send({ puzzle: puzzles[0][0], value: '3' })
       .end((err, res) => {
-        // CORRECCION: Mensaje en plural 'missing'
         assert.equal(res.body.error, 'Required field(s) missing');
         done();
       });
@@ -119,7 +117,8 @@ suite('Functional Tests', () => {
   test('Check a puzzle placement with invalid characters: POST request to /api/check', (done) => {
     chai.request(server)
       .post('/api/check')
-      .send({ puzzle: 'A.5..2...', coordinate: 'A2', value: '3' })
+      // CORREGIDO: Cadena de 81 caracteres que contiene una 'A'
+      .send({ puzzle: 'A.5..2.84..63.12.7.2..5.....9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.', coordinate: 'A2', value: '3' })
       .end((err, res) => {
         assert.equal(res.body.error, 'Invalid characters in puzzle');
         done();
