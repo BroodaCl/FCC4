@@ -32,7 +32,8 @@ suite('Unit Tests', () => {
   });
 
   test('Logic handles an invalid column placement', () => {
-    assert.isFalse(solver.checkColPlacement(puzzleStrings[0][0], 'A', 2, '5')); 
+    // CORREGIDO: Usamos '2' porque el 2 ya existe en la columna 2 (fila C), creando conflicto.
+    assert.isFalse(solver.checkColPlacement(puzzleStrings[0][0], 'A', 2, '2')); 
   });
 
   test('Logic handles a valid region (3x3 grid) placement', () => {
