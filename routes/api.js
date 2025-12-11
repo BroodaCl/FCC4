@@ -1,3 +1,5 @@
+'use strict';
+
 const SudokuSolver = require('../controllers/sudoku-solver.js');
 
 module.exports = function (app) {
@@ -8,19 +10,20 @@ module.exports = function (app) {
     .post((req, res) => {
       const { puzzle, coordinate, value } = req.body;
 
+      // Check 1: Campos faltantes (Plural con s)
       if (!puzzle || !coordinate || !value) {
         return res.json({ error: 'Required field(s) missing' });
       }
 
-      // Validar formato del puzzle
+      // Check 2: Validación básica del puzzle
       if (puzzle.length !== 81) return res.json({ error: 'Expected puzzle to be 81 characters long' });
       if (/[^1-9.]/.test(puzzle)) return res.json({ error: 'Invalid characters in puzzle' });
 
-      // Validar coordenada (Ej: A1, I9)
+      // Check 3: Coordenada válida
       const coordRegex = /^[A-I][1-9]$/i;
       if (!coordRegex.test(coordinate)) return res.json({ error: 'Invalid coordinate'});
 
-      // Validar valor (1-9)
+      // Check 4: Valor válido
       if (!/^[1-9]$/.test(value)) return res.json({ error: 'Invalid value' });
 
       const row = coordinate.charAt(0);
@@ -28,9 +31,6 @@ module.exports = function (app) {
 
       let conflicts = [];
       
-      // Comprobamos conflictos
-      // Nota: Pasamos col como número, el método espera columna 1-9 o índice según tu lógica.
-      // Ajusta si tu método espera índice 0-8 o 1-9. En mi ejemplo anterior espera 1-9 para columna.
       if (!solver.checkRowPlacement(puzzle, row, col, value)) conflicts.push("row");
       if (!solver.checkColPlacement(puzzle, row, col, value)) conflicts.push("column");
       if (!solver.checkRegionPlacement(puzzle, row, col, value)) conflicts.push("region");
@@ -45,10 +45,14 @@ module.exports = function (app) {
     .post((req, res) => {
       const { puzzle } = req.body;
 
-      if (!puzzle) return res.json({ error: 'Required field(s) missing' });
+      // Check 1: Campo faltante (Singular sin s - CORRECCIÓN IMPORTANTE)
+      if (!puzzle) return res.json({ error: 'Required field missing' });
+      
+      // Check 2: Validaciones
       if (puzzle.length !== 81) return res.json({ error: 'Expected puzzle to be 81 characters long' });
       if (/[^1-9.]/.test(puzzle)) return res.json({ error: 'Invalid characters in puzzle' });
 
+      // Check 3: Resolver
       const solution = solver.solve(puzzle);
       if (!solution) return res.json({ error: 'Puzzle cannot be solved' });
       

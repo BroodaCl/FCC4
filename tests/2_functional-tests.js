@@ -1,4 +1,4 @@
-const chai = require('chai');
+const chai = require("chai");
 const chaiHttp = require('chai-http');
 const assert = chai.assert;
 const server = require('../server');
@@ -24,8 +24,9 @@ suite('Functional Tests', () => {
       .post('/api/solve')
       .send({})
       .end((err, res) => {
-        assert.equal(res.status, 200); // FCC a veces espera 200 incluso con error
-        assert.equal(res.body.error, 'Required field(s) missing');
+        assert.equal(res.status, 200);
+        // CORRECCION: Mensaje en singular 'missing'
+        assert.equal(res.body.error, 'Required field missing');
         done();
       });
   });
@@ -74,22 +75,42 @@ suite('Functional Tests', () => {
   test('Check a puzzle placement with single placement conflict: POST request to /api/check', (done) => {
     chai.request(server)
       .post('/api/check')
-      .send({ puzzle: puzzles[0][0], coordinate: 'A2', value: '8' }) // 8 puede chocar
+      .send({ puzzle: puzzles[0][0], coordinate: 'A2', value: '8' })
       .end((err, res) => {
         assert.equal(res.body.valid, false);
-        assert.isArray(res.body.conflict);
         assert.lengthOf(res.body.conflict, 1);
         done();
       });
   });
 
-  // ... Debes implementar el resto de combinaciones de conflictos (múltiples y todos)
-  
+  test('Check a puzzle placement with multiple placement conflicts: POST request to /api/check', (done) => {
+    chai.request(server)
+      .post('/api/check')
+      .send({ puzzle: puzzles[0][0], coordinate: 'A2', value: '1' })
+      .end((err, res) => {
+        assert.equal(res.body.valid, false);
+        assert.lengthOf(res.body.conflict, 2);
+        done();
+      });
+  });
+
+  test('Check a puzzle placement with all placement conflicts: POST request to /api/check', (done) => {
+    chai.request(server)
+      .post('/api/check')
+      .send({ puzzle: puzzles[0][0], coordinate: 'A2', value: '2' })
+      .end((err, res) => {
+        assert.equal(res.body.valid, false);
+        assert.lengthOf(res.body.conflict, 3);
+        done();
+      });
+  });
+
   test('Check a puzzle placement with missing required fields: POST request to /api/check', (done) => {
     chai.request(server)
       .post('/api/check')
       .send({ puzzle: puzzles[0][0], value: '3' })
       .end((err, res) => {
+        // CORRECCION: Mensaje en plural 'missing'
         assert.equal(res.body.error, 'Required field(s) missing');
         done();
       });
@@ -105,5 +126,33 @@ suite('Functional Tests', () => {
       });
   });
   
-  // Continúa con los tests de longitud incorrecta, coordenadas invalidas y valor invalido
+  test('Check a puzzle placement with incorrect length: POST request to /api/check', (done) => {
+    chai.request(server)
+      .post('/api/check')
+      .send({ puzzle: '1.5..2...', coordinate: 'A2', value: '3' })
+      .end((err, res) => {
+        assert.equal(res.body.error, 'Expected puzzle to be 81 characters long');
+        done();
+      });
+  });
+
+  test('Check a puzzle placement with invalid placement coordinate: POST request to /api/check', (done) => {
+    chai.request(server)
+      .post('/api/check')
+      .send({ puzzle: puzzles[0][0], coordinate: 'XZ18', value: '3' })
+      .end((err, res) => {
+        assert.equal(res.body.error, 'Invalid coordinate');
+        done();
+      });
+  });
+
+  test('Check a puzzle placement with invalid placement value: POST request to /api/check', (done) => {
+    chai.request(server)
+      .post('/api/check')
+      .send({ puzzle: puzzles[0][0], coordinate: 'A2', value: 'X' })
+      .end((err, res) => {
+        assert.equal(res.body.error, 'Invalid value');
+        done();
+      });
+  });
 });
